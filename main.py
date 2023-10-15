@@ -128,9 +128,9 @@ def process_video_and_generate_cover(video_path: gr.inputs.Video):
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Рассчитываем шаг
-    step = total_frames // 10
+    step = total_frames // 20
 
-    for i in range(10):
+    for i in range(20):
         # Перемещаемся к нужному кадру
         cap.set(cv2.CAP_PROP_POS_FRAMES, i * step)
 
@@ -168,13 +168,13 @@ def process_video_and_generate_cover(video_path: gr.inputs.Video):
     img_emb = prior(
         prompt="video cover, quality, realistic" + final_prompt,
         num_inference_steps=75,
-        num_images_per_prompt=1
+        num_images_per_prompt=4
     )
 
     negative_emb = prior(
         prompt=negative_prior_prompt,
         num_inference_steps=75,
-        num_images_per_prompt=1
+        num_images_per_prompt=4
     )
 
     images = decoder(
@@ -184,20 +184,22 @@ def process_video_and_generate_cover(video_path: gr.inputs.Video):
         height=512,
         width=720)
 
-    cover_image = images.images[0]
-
     # Шаг 5: Удаление фреймов
     clear_frames(output_folder)
-    return cover_image
+    return images.images[0], images.images[1], images.images[2], images.images[3]
 
 
 video_input_component = gr.Video(file=True)
-image_output_component = gr.Image(type="pil")
+
+image_output_component1 = gr.Image(type="pil")
+image_output_component2 = gr.Image(type="pil")
+image_output_component3 = gr.Image(type="pil")
+image_output_component4 = gr.Image(type="pil")
 
 interface = gr.Interface(
     fn=process_video_and_generate_cover,
     inputs=video_input_component,
-    outputs=image_output_component,
+    outputs=[image_output_component1, image_output_component2, image_output_component3, image_output_component4],
     enable_queue=True,
     title="TubeArt",
     debug=True
